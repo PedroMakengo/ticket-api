@@ -21,4 +21,6 @@ export class MailService {
       text: `Your OTP code is ${otp}`,
     });
   }
+
+  async sendMailTicket(email: string, ticket: string): Promise<void> {}
 }

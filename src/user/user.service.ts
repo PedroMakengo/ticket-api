@@ -1,4 +1,9 @@
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  UseGuards,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
@@ -6,6 +11,7 @@ import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
 import { MailService } from 'src/shared/mail/mail.service';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Injectable()
 export class UserService {
@@ -19,6 +25,12 @@ export class UserService {
     const hashPassword = await bcrypt.hash(createUserDto.senha, 10);
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const token = randomUUID();
+
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: createUserDto.email },
+    });
+
+    if (existingUser) throw new NotFoundException('User already exists');
 
     const user = this.prisma.user.create({
       data: {
@@ -35,21 +47,52 @@ export class UserService {
     return user;
   }
 
+  @UseGuards(AuthGuard)
   async findAll() {
     const users = await this.prisma.user.findMany();
 
     return users;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  @UseGuards(AuthGuard)
+  findOne(id: string) {
+    const user = this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!user) throw new NotFoundException('User not found');
+
+    return user;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  @UseGuards(AuthGuard)
+  update(id: string, updateUserDto: UpdateUserDto) {
+    const existingUser = this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!existingUser) throw new NotFoundException('User not found');
+
+    const user = this.prisma.user.update({
+      where: { id },
+      data: updateUserDto,
+    });
+
+    return user;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  @UseGuards(AuthGuard)
+  remove(id: string) {
+    const existingUser = this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!existingUser) throw new NotFoundException('User not found');
+
+    const user = this.prisma.user.delete({
+      where: { id },
+    });
+
+    return user;
   }
 }
