@@ -7,6 +7,7 @@ import {
 } from 'src/utils/ticket-pdf.generator';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
 import { gerarReferenciaTicket } from 'src/utils/random-codigo-referencia';
+import { formatEventoData } from 'src/utils/format-data-evento';
 
 @Injectable()
 export class TicketService {
@@ -16,6 +17,22 @@ export class TicketService {
   async create(createTicketDto: CreateTicketDto) {
     const codigoReferencia = gerarReferenciaTicket();
 
+    const evento = await this.prisma.evento.findUnique({
+      where: {
+        id: createTicketDto.eventoId,
+      },
+    });
+
+    if (!evento) throw new NotFoundException('Este evento não existe');
+
+    const inscricao = await this.prisma.inscricao.findUnique({
+      where: {
+        id: createTicketDto.inscricaoId,
+      },
+    });
+
+    if (!inscricao) throw new NotFoundException('Inscrição não efetuada');
+
     const ticket = await this.prisma.ticket.create({
       data: {
         ...createTicketDto,
@@ -23,31 +40,16 @@ export class TicketService {
       },
     });
 
-    const evento = await this.prisma.evento.findUnique({
-      where: {
-        id: ticket.eventoId,
-      },
-    });
-
-    const inscricao = await this.prisma.inscricao.findUnique({
-      where: {
-        id: ticket.inscricaoId,
-      },
-    });
-
-    if (!evento) throw new NotFoundException('Este evento não existe');
-    if (!inscricao) throw new NotFoundException('Inscrição não efetuada');
-
     const ticketData: TicketData = {
       eventName: evento?.titulo || '',
       location: evento?.local || '',
-      date: `${evento?.data}` || '',
+      date: `${formatEventoData(evento?.data)}` || '',
       time: `${evento?.horaInicio} - ${evento?.horaFim}`,
       participantName: inscricao?.nomeParticipante,
       participantType: inscricao?.tipoParticipante,
       seatType: ticket.tipoLugar,
       seatDetails: ticket.tipoLugarDetalhes,
-      ticketId: `#${ticket.id}`,
+      ticketId: `${ticket.id}`,
       orderRef: ticket.codigo,
       baseUrl: `'localhost:3000/validate-ticket?ticketId='${ticket.id}`,
     };

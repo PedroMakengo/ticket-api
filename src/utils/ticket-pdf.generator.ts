@@ -27,7 +27,7 @@ export async function generateTicketPDF(
       const doc = new PDFDocument({
         size: [595, 400],
         margins: { top: 40, bottom: 40, left: 40, right: 40 },
-        autoFirstPage: false, // Desativa criação automática de páginas
+        autoFirstPage: false,
       });
 
       const tmpDir = path.join(process.cwd(), 'tmp');
@@ -60,94 +60,122 @@ export async function generateTicketPDF(
       });
 
       // Badge "CONFIRMADO"
-      doc.fontSize(10).fillColor('#E8B4B4').text('CONFIRMADO', 50, 50);
-
-      // Título do evento
       doc
-        .fontSize(32)
-        .fillColor('#000000')
-        .font('Helvetica-Bold')
-        .text(ticketData.eventName, 50, 80, { width: 350 });
+        .fontSize(10)
+        .fillColor('#E8B4B4')
+        .font('Helvetica')
+        .text('CONFIRMADO', 50, 50);
 
-      // Subtítulo - Local
+      // Título do evento - com altura calculada dinamicamente
+      doc.fontSize(28).fillColor('#000000').font('Helvetica-Bold');
+
+      const titleHeight = doc.heightOfString(ticketData.eventName, {
+        width: 350,
+      });
+      doc.text(ticketData.eventName, 50, 80, { width: 350 });
+
+      // Subtítulo - Local (ajustado para não sobrepor)
+      const locationY = 80 + titleHeight + 10;
       doc
-        .fontSize(16)
+        .fontSize(14)
         .fillColor('#2A7B7B')
         .font('Helvetica')
-        .text(ticketData.location, 50, 125, { width: 350 });
+        .text(ticketData.location, 50, locationY, { width: 350 });
 
       // Seção: DATA E HORA
-      doc.fontSize(10).fillColor('#999999').text('DATA E HORA', 50, 170);
+      doc
+        .fontSize(10)
+        .fillColor('#999999')
+        .font('Helvetica')
+        .text('DATA E HORA', 50, 180);
 
       doc
         .fontSize(14)
         .fillColor('#000000')
         .font('Helvetica-Bold')
-        .text(ticketData.date, 50, 185);
+        .text(ticketData.date, 50, 198);
 
       doc
         .fontSize(12)
         .fillColor('#666666')
         .font('Helvetica')
-        .text(ticketData.time, 50, 205);
+        .text(ticketData.time, 50, 218);
 
       // Seção: PARTICIPANTE
-      doc.fontSize(10).fillColor('#999999').text('PARTICIPANTE', 280, 170);
+      doc
+        .fontSize(10)
+        .fillColor('#999999')
+        .font('Helvetica')
+        .text('PARTICIPANTE', 280, 180);
 
       doc
         .fontSize(14)
         .fillColor('#000000')
         .font('Helvetica-Bold')
-        .text(ticketData.participantName, 280, 185, { width: 150 });
+        .text(ticketData.participantName, 280, 198, { width: 130 });
 
       doc
         .fontSize(12)
         .fillColor('#666666')
         .font('Helvetica')
-        .text(ticketData.participantType, 280, 205, { width: 150 });
+        .text(ticketData.participantType, 280, 218, { width: 130 });
 
       // Seção: LUGAR / TIPO
-      doc.fontSize(10).fillColor('#999999').text('LUGAR / TIPO', 50, 250);
+      doc
+        .fontSize(10)
+        .fillColor('#999999')
+        .font('Helvetica')
+        .text('LUGAR / TIPO', 50, 260);
 
       doc
         .fontSize(14)
         .fillColor('#000000')
         .font('Helvetica-Bold')
-        .text(ticketData.seatType, 50, 265);
+        .text(ticketData.seatType, 50, 278);
 
       doc
         .fontSize(12)
         .fillColor('#666666')
         .font('Helvetica')
-        .text(ticketData.seatDetails, 50, 285);
+        .text(ticketData.seatDetails, 50, 298, { width: 200 });
 
       // Seção: ID DO INGRESSO
-      doc.fontSize(10).fillColor('#999999').text('ID DO INGRESSO', 280, 250);
+      doc
+        .fontSize(10)
+        .fillColor('#999999')
+        .font('Helvetica')
+        .text('ID DO INGRESSO', 280, 260);
 
       doc
-        .fontSize(14)
+        .fontSize(11)
         .fillColor('#000000')
         .font('Helvetica-Bold')
-        .text(ticketData.ticketId, 280, 265);
+        .text(ticketData.ticketId, 280, 278, { width: 250 });
 
       doc
-        .fontSize(12)
+        .fontSize(11)
         .fillColor('#666666')
         .font('Helvetica')
-        .text(`Ref. Pedido: ${ticketData.orderRef}`, 280, 285);
+        .text(`Ref. Pedido: ${ticketData.orderRef}`, 280, 298, {
+          width: 130,
+        });
+
+      // Ícone do evento (badge) - posicionado antes do QR Code
+      doc.roundedRect(445, 50, 20, 20, 3).fillColor('#2C4A4A').fill();
 
       // Adiciona o QR Code real
-      doc.image(qrCodeImage, 450, 50, {
-        width: 100,
-        height: 100,
+      doc.image(qrCodeImage, 470, 50, {
+        width: 90,
+        height: 90,
       });
 
       // Instrução do QR Code
       doc
         .fontSize(8)
         .fillColor('#666666')
-        .text('Escaneie o código para', 435, 165, {
-          width: 120,
+        .font('Helvetica')
+        .text('Escaneie o código para', 455, 150, {
+          width: 110,
           align: 'center',
         });
 
@@ -155,13 +183,10 @@ export async function generateTicketPDF(
         .fontSize(9)
         .fillColor('#2A7B7B')
         .font('Helvetica-Bold')
-        .text('entrada rápida', 435, 177, {
-          width: 120,
+        .text('entrada rápida', 455, 162, {
+          width: 110,
           align: 'center',
         });
-
-      // Ícone do evento (badge)
-      doc.roundedRect(420, 50, 20, 20, 3).fillColor('#2C4A4A').fill();
 
       doc.end();
 
