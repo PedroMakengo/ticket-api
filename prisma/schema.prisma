@@ -1,0 +1,86 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+
+
+model User {
+  id        String      @id @default(uuid())
+  nome      String
+  email     String   @unique
+  senha     String
+  role      String @default("ORGANIZADOR")
+
+  eventos   Evento[]
+  activo      Boolean      @default(false)
+  verifyToken String
+  codigoOTP   String
+
+  criadoEm  DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+}
+
+
+model Evento {
+  id          String      @id @default(uuid())
+  titulo      String
+  descricao   String?
+  data        DateTime
+  local       String
+  capacidade  Int
+
+  // Relacionamento com User
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  // Relacionamentos
+  inscricoes  Inscricao[]
+  tickets     Ticket[]
+
+  criadoEm    DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+}
+
+model Inscricao {
+  id                String      @id @default(uuid())
+  nomeParticipante  String
+  email             String
+  telefone          String?
+
+  // Relacionamento com Evento
+  eventoId          String
+  evento            Evento   @relation(fields: [eventoId], references: [id])
+
+  // 1 Inscrição -> 1 Ticket
+  ticket            Ticket?
+
+  criadoEm         DateTime @default(now())
+  atualizadoEm     DateTime @updatedAt
+
+  // Evita duplicação de inscrição no mesmo evento
+  @@unique([email, eventoId])
+}
+
+
+model Ticket {
+  id           String       @id @default(uuid())
+  codigo       String       @unique
+  status       String @default("VALIDO")
+
+  // Relacionamento com Evento
+  eventoId     String
+  evento       Evento       @relation(fields: [eventoId], references: [id])
+
+  // Relacionamento com Inscrição (1:1)
+  inscricaoId  String         @unique
+  inscricao    Inscricao    @relation(fields: [inscricaoId], references: [id])
+
+  criadoEm     DateTime     @default(now())
+  usadoEm      DateTime?
+}
