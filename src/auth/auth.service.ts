@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
+import { CreateUserDto } from 'src/user/dto/create-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -32,5 +33,22 @@ export class AuthService {
     const payload = { sub: user.id };
 
     return { access_token: await this.jwtService.sign(payload) };
+  }
+
+  async validate(otp: string, token: string) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        verifyToken: token,
+      },
+    });
+
+    if (!user) throw new NotFoundException('Token passado não é válido');
+
+    await this.prisma.user.update({
+      where: { id: user.id, codigoOTP: otp },
+      data: { verifyToken: 'null', activo: true, codigoOTP: null },
+    });
+
+    return user;
   }
 }

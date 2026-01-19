@@ -19,4 +19,9 @@ export class AuthController {
   create(@Body() createAuthDto: CreateAuthDto) {
     return this.authService.signin(createAuthDto);
   }
+
+  @Patch(':token')
+  update(@Body() otp: string, @Param() token: string) {
+    return this.authService.validate(otp, token);
+  }
 }
