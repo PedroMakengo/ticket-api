@@ -17,10 +17,11 @@ model User {
   senha     String
   role      String @default("ORGANIZADOR")
 
-  eventos   Evento[]
-  activo      Boolean      @default(false)
-  verifyToken String
-  codigoOTP   String
+  eventos      Evento[]
+  activo       Boolean      @default(false)
+  verifyToken  String
+  codigoOTP    String?
+  expiracaoOTP DateTime?
 
   criadoEm  DateTime @default(now())
   atualizadoEm DateTime @updatedAt

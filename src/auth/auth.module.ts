@@ -1,14 +1,16 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { DatabaseModule } from 'src/database/database.module';
+import { PrismaModule } from 'src/shared/prisma/prisma.module';
 import { UserModule } from 'src/user/user.module';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthGuard } from './auth.guard';
+import { MailModule } from 'src/shared/mail/mail.module';
 
 @Module({
   imports: [
-    DatabaseModule,
+    PrismaModule,
+    MailModule,
     forwardRef(() => UserModule),
     JwtModule.register({
       global: true,

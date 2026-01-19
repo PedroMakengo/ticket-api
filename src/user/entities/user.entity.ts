@@ -8,7 +8,8 @@ export class User implements Users {
   role: string;
   activo: boolean;
   verifyToken: string;
-  codigoOTP: string;
+  codigoOTP: string | null;
+  expiracaoOTP: Date | null;
   criadoEm: Date;
   atualizadoEm: Date;
 }

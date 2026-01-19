@@ -5,15 +5,15 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
-import { PrismaClient } from '@prisma/client/extension';
 import { JwtService } from '@nestjs/jwt';
 
 import * as bcrypt from 'bcrypt';
+import { PrismaService } from 'src/shared/prisma/prisma.service';
 
 @Injectable()
 export class AuthService {
   @Inject()
-  private readonly prisma: PrismaClient;
+  private readonly prisma: PrismaService;
 
   @Inject()
   private readonly jwtService: JwtService;
@@ -25,7 +25,7 @@ export class AuthService {
 
     if (!user) throw new NotFoundException('User not found');
 
-    const passwordMatch = await bcrypt.compare(dto.senha, user.password);
+    const passwordMatch = await bcrypt.compare(dto.senha, user.senha);
 
     if (!passwordMatch) throw new UnauthorizedException('Invalid credentials');
 
