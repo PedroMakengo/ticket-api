@@ -6,10 +6,12 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { InscricaoService } from './inscricao.service';
 import { CreateInscricaoDto } from './dto/create-inscricao.dto';
 import { UpdateInscricaoDto } from './dto/update-inscricao.dto';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('inscricao')
 export class InscricaoController {
@@ -20,6 +22,7 @@ export class InscricaoController {
     return this.inscricaoService.create(createInscricaoDto);
   }
 
+  @UseGuards(AuthGuard)
   @Get()
   findAll() {
     return this.inscricaoService.findAll();
@@ -30,6 +33,7 @@ export class InscricaoController {
     return this.inscricaoService.findOne(id);
   }
 
+  @UseGuards(AuthGuard)
   @Patch(':id')
   update(
     @Param('id') id: string,
@@ -38,6 +42,7 @@ export class InscricaoController {
     return this.inscricaoService.update(id, updateInscricaoDto);
   }
 
+  @UseGuards(AuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.inscricaoService.remove(id);

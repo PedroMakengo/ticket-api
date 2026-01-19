@@ -1,9 +1,4 @@
-import {
-  Inject,
-  Injectable,
-  NotFoundException,
-  UseGuards,
-} from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
@@ -11,7 +6,6 @@ import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
 import { MailService } from 'src/shared/mail/mail.service';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
-import { AuthGuard } from 'src/auth/auth.guard';
 
 @Injectable()
 export class UserService {
@@ -47,14 +41,12 @@ export class UserService {
     return user;
   }
 
-  @UseGuards(AuthGuard)
   async findAll() {
     const users = await this.prisma.user.findMany();
 
     return users;
   }
 
-  @UseGuards(AuthGuard)
   findOne(id: string) {
     const user = this.prisma.user.findUnique({
       where: { id },
@@ -65,7 +57,6 @@ export class UserService {
     return user;
   }
 
-  @UseGuards(AuthGuard)
   update(id: string, updateUserDto: UpdateUserDto) {
     const existingUser = this.prisma.user.findUnique({
       where: { id },
@@ -81,7 +72,6 @@ export class UserService {
     return user;
   }
 
-  @UseGuards(AuthGuard)
   remove(id: string) {
     const existingUser = this.prisma.user.findUnique({
       where: { id },

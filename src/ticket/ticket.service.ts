@@ -1,45 +1,82 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import {
   generateTicketPDF,
   type TicketData,
 } from 'src/utils/ticket-pdf.generator';
+import { PrismaService } from 'src/shared/prisma/prisma.service';
+import { gerarReferenciaTicket } from 'src/utils/random-codigo-referencia';
 
 @Injectable()
 export class TicketService {
+  @Inject()
+  private readonly prisma: PrismaService;
+
   async create(createTicketDto: CreateTicketDto) {
+    const codigoReferencia = gerarReferenciaTicket();
+
+    const ticket = await this.prisma.ticket.create({
+      data: {
+        ...createTicketDto,
+        codigo: codigoReferencia,
+      },
+    });
+
+    const evento = await this.prisma.evento.findUnique({
+      where: {
+        id: ticket.eventoId,
+      },
+    });
+
+    const inscricao = await this.prisma.inscricao.findUnique({
+      where: {
+        id: ticket.inscricaoId,
+      },
+    });
+
+    if (!evento) throw new NotFoundException('Este evento não existe');
+    if (!inscricao) throw new NotFoundException('Inscrição não efetuada');
+
     const ticketData: TicketData = {
-      eventName: 'A Grande Gala 2024',
-      location: 'Metropolitan Museum of Art',
-      date: 'Sexta, 15 Dez',
-      time: '19:00 - 23:30',
-      participantName: 'Alex Johnson',
-      participantType: 'Membro Profissional',
-      seatType: 'Entrada Geral',
-      seatDetails: 'Fila B | Lugar 24',
-      ticketId: '#EH-2024-8849',
-      orderRef: 'GH921',
-      baseUrl: 'localhost:3000/validate-ticket?ticketId=...',
+      eventName: evento?.titulo || '',
+      location: evento?.local || '',
+      date: `${evento?.data}` || '',
+      time: `${evento?.horaInicio} - ${evento?.horaFim}`,
+      participantName: inscricao?.nomeParticipante,
+      participantType: inscricao?.tipoParticipante,
+      seatType: ticket.tipoLugar,
+      seatDetails: ticket.tipoLugarDetalhes,
+      ticketId: `#${ticket.id}`,
+      orderRef: ticket.codigo,
+      baseUrl: `'localhost:3000/validate-ticket?ticketId='${ticket.id}`,
     };
 
     const pdfPath = await generateTicketPDF(ticketData);
+
     return pdfPath;
   }
 
-  findAll() {
-    return `This action returns all ticket`;
+  async findAll() {
+    return this.prisma.ticket.findMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} ticket`;
+  async findOne(id: string) {
+    const ticket = await this.prisma.ticket.findUnique({
+      where: { id },
+    });
   }
 
-  update(id: number, updateTicketDto: UpdateTicketDto) {
-    return `This action updates a #${id} ticket`;
+  async update(id: string, updateTicketDto: UpdateTicketDto) {
+    const ticket = await this.prisma.ticket.update({
+      where: { id },
+      data: updateTicketDto,
+    });
+
+    return ticket;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} ticket`;
+  async remove(id: string) {
+    return this.prisma.ticket.delete({ where: { id } });
   }
 }

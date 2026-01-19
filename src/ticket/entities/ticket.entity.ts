@@ -5,6 +5,8 @@ export class Ticket implements Tickets {
   codigo: string;
   status: string;
   eventoId: string;
+  tipoLugar: string;
+  tipoLugarDetalhes: string;
   inscricaoId: string;
   criadoEm: Date;
   usadoEm: Date | null;

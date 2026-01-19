@@ -35,6 +35,8 @@ model Evento {
   data        DateTime
   local       String
   capacidade  Int
+  horaInicio  String 
+  horaFim     String
 
   // Relacionamento com User
   userId      String
@@ -51,6 +53,7 @@ model Evento {
 model Inscricao {
   id                String      @id @default(uuid())
   nomeParticipante  String
+  tipoParticipante  String
   email             String
   telefone          String?
 
@@ -77,7 +80,8 @@ model Ticket {
   // Relacionamento com Evento
   eventoId     String
   evento       Evento       @relation(fields: [eventoId], references: [id])
-
+  tipoLugar    String 
+  tipoLugarDetalhes String
   // Relacionamento com Inscrição (1:1)
   inscricaoId  String         @unique
   inscricao    Inscricao    @relation(fields: [inscricaoId], references: [id])

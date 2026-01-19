@@ -4,5 +4,7 @@ export class CreateEventoDto {
   data: Date;
   local: string;
   capacidade: number;
+  horaInicio: string;
+  horaFim: string;
   userId: string;
 }

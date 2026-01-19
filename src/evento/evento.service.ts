@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { CreateEventoDto } from './dto/create-evento.dto';
 import { UpdateEventoDto } from './dto/update-evento.dto';
-import { AuthGuard } from 'src/auth/auth.guard';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
 
 @Injectable()
@@ -14,7 +13,6 @@ export class EventoService {
   @Inject()
   private readonly prisma: PrismaService;
 
-  @UseGuards(AuthGuard)
   async create(createEventoDto: CreateEventoDto) {
     const evento = await this.prisma.evento.create({
       data: createEventoDto,
@@ -37,7 +35,6 @@ export class EventoService {
     return evento;
   }
 
-  @UseGuards(AuthGuard)
   async update(id: string, updateEventoDto: UpdateEventoDto) {
     const eventoExists = await this.prisma.evento.findUnique({
       where: { id },
@@ -53,7 +50,6 @@ export class EventoService {
     return evento;
   }
 
-  @UseGuards(AuthGuard)
   async remove(id: string) {
     const eventoExists = await this.prisma.evento.findUnique({
       where: { id },

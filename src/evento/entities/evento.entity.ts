@@ -7,6 +7,8 @@ export class Evento implements Eventos {
   data: Date;
   local: string;
   capacidade: number;
+  horaInicio: string;
+  horaFim: string;
   userId: string;
   criadoEm: Date;
   atualizadoEm: Date;
